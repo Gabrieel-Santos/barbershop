@@ -24,11 +24,6 @@ public class User {
     @Column(name = "public_id", nullable = false, unique = true, updatable = false)
     private UUID publicId = UUID.randomUUID();
 
-    @ManyToOne
-    @JoinColumn(name = "barbershop_id", nullable = false)
-    private Barbershop barbershop;
-
-
     @Column(nullable = false)
     private String name;
 
