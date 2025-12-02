@@ -1,5 +1,6 @@
 package com.gabrieis.barbershop.entity;
 
+import com.gabrieis.barbershop.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -36,8 +37,9 @@ public class User {
     @Column(nullable = false, name = "password_hash")
     private String passwordHash;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String role;
+    private UserRole role;
 
     @Column(name = "is_active")
     private boolean isActive;

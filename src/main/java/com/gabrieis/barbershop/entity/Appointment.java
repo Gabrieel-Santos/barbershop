@@ -1,5 +1,6 @@
 package com.gabrieis.barbershop.entity;
 
+import com.gabrieis.barbershop.enums.AppointmentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -46,8 +47,9 @@ public class Appointment {
     @Column(name = "end_time", nullable = false)
     private  LocalDateTime endTime;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status; // SCHEDULED, COMPLETED, CANCELED, NO_SHOW
+    private AppointmentStatus status;
 
     @Column(columnDefinition = "TEXT")
     private String notes;
