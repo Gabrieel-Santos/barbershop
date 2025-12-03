@@ -5,6 +5,8 @@ import com.gabrieis.barbershop.dto.auth.LoginRequest;
 import com.gabrieis.barbershop.dto.auth.RegisterRequest;
 import com.gabrieis.barbershop.entity.User;
 import com.gabrieis.barbershop.enums.UserRole;
+import com.gabrieis.barbershop.exception.EmailAlreadyExistsException;
+import com.gabrieis.barbershop.exception.InvalidCredentialsException;
 import com.gabrieis.barbershop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,7 +23,7 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
 
         if(userRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email already in use");
+            throw new EmailAlreadyExistsException("Email already in use");
         }
 
         String passwordHash = passwordEncoder.encode(request.password());
@@ -37,21 +39,24 @@ public class AuthService {
 
         userRepository.save(user);
 
-        String token = jwtService.generateToken(user);
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
 
-        return new AuthResponse(token);
+        return new AuthResponse(accessToken, refreshToken);
     }
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new InvalidCredentialsException("Invalid credentials");
         }
 
-        String token = jwtService.generateToken(user);
-        return new AuthResponse(token);
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        return new AuthResponse(accessToken, refreshToken);
     }
 
 }
