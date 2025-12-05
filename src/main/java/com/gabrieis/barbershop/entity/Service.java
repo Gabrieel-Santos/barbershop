@@ -23,7 +23,7 @@ public class Service {
     private Long id;
 
     @Column(name = "public_id", nullable = false, unique = true, updatable = false)
-    private UUID publicId = UUID.randomUUID();
+    private UUID publicId;
 
     @ManyToOne
     @JoinColumn(name = "barbershop_id", nullable = false)
@@ -48,4 +48,11 @@ public class Service {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (publicId == null) {
+            publicId = UUID.randomUUID();
+        }
+    }
 }

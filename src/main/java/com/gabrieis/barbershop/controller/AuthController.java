@@ -1,6 +1,7 @@
 package com.gabrieis.barbershop.controller;
 
 import com.gabrieis.barbershop.dto.auth.AuthResponse;
+import com.gabrieis.barbershop.dto.auth.GoogleAuthRequest;
 import com.gabrieis.barbershop.dto.auth.LoginRequest;
 import com.gabrieis.barbershop.dto.auth.RegisterRequest;
 import com.gabrieis.barbershop.service.AuthService;
@@ -28,6 +29,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> loginWithGoogle(@Valid @RequestBody GoogleAuthRequest request) {
+        AuthResponse response = authService.loginWithGoogle(request.idToken());
         return ResponseEntity.ok(response);
     }
 }

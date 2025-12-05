@@ -8,9 +8,17 @@ import com.gabrieis.barbershop.enums.UserRole;
 import com.gabrieis.barbershop.exception.EmailAlreadyExistsException;
 import com.gabrieis.barbershop.exception.InvalidCredentialsException;
 import com.gabrieis.barbershop.repository.UserRepository;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.google.api.client.json.jackson2.JacksonFactory;
+
+import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -20,9 +28,12 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
+    @Value("${app.oauth.google.client-id}")
+    private String googleClientId;
+
     public AuthResponse register(RegisterRequest request) {
 
-        if(userRepository.existsByEmail(request.email())) {
+        if (userRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyExistsException("Email already in use");
         }
 
@@ -57,6 +68,55 @@ public class AuthService {
         String refreshToken = jwtService.generateRefreshToken(user);
 
         return new AuthResponse(accessToken, refreshToken);
+    }
+
+    public AuthResponse loginWithGoogle(String idTokenString) {
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    new NetHttpTransport(),
+                    GsonFactory.getDefaultInstance())
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(idTokenString);
+
+            if (idToken == null) {
+                throw new InvalidCredentialsException("Invalid Google token");
+            }
+
+            GoogleIdToken.Payload payload =idToken.getPayload();
+
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            Boolean emailVerified = (Boolean) payload.getEmailVerified();
+
+            if (emailVerified == null || !emailVerified) {
+                throw new InvalidCredentialsException("Google email not verified");
+            }
+
+            User user = userRepository.findByEmail(email)
+                    .orElseGet(() -> {
+                        User newUser = User.builder()
+                                .name(name != null ? name : email)
+                                .email(email)
+                                .phone(null)
+                                .passwordHash(null)
+                                .role(UserRole.CLIENT)
+                                .isActive(true)
+                                .build();
+                        return userRepository.save(newUser);
+                    });
+
+            String accessToken = jwtService.generateAccessToken(user);
+            String refreshToken = jwtService.generateRefreshToken(user);
+
+            return new AuthResponse(accessToken, refreshToken);
+
+        } catch (InvalidCredentialsException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InvalidCredentialsException("Invalid Google token");
+        }
     }
 
 }
