@@ -30,21 +30,21 @@ public class JwtService {
 
     public String generateAccessToken(User user) {
         Map<String, Object> claims = buildDefaultClaims(user);
-        return buildToken(claims, user.getEmail(), accessTokenExpirationMs);
+        return buildToken(claims, user.getPublicId().toString(), accessTokenExpirationMs);
     }
 
     public String generateRefreshToken(User user) {
         Map<String, Object> claims = buildDefaultClaims(user);
         claims.put("type", "refresh");
-        return buildToken(claims, user.getEmail(), refreshTokenExpirationMs);
+        return buildToken(claims, user.getPublicId().toString(), refreshTokenExpirationMs);
     }
 
     public boolean isTokenValid(String token, User user) {
-        final String email = extractEmail(token);
-        return email.equals(user.getEmail()) && !isTokenExpired(token);
+        final String publicIdFromToken = extractSubject(token);
+        return publicIdFromToken.equals(user.getPublicId().toString()) && !isTokenExpired(token);
     }
 
-    public String extractEmail(String token) {
+    public String extractSubject(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -83,7 +83,7 @@ public class JwtService {
                 .parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
-                .parseClaimsJwt(token)
+                .parseClaimsJws(token)
                 .getBody();
     }
 

@@ -1,5 +1,7 @@
 package com.gabrieis.barbershop.dto.user;
 
+import com.gabrieis.barbershop.enums.UserRole;
+
 import java.util.UUID;
 
 public record UserResponse(
@@ -7,6 +9,7 @@ public record UserResponse(
         String name,
         String email,
         String phone,
-        String role
+        UserRole role,
+        boolean isActive
 ) {
 }

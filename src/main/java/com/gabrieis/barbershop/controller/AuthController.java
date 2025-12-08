@@ -4,14 +4,13 @@ import com.gabrieis.barbershop.dto.auth.AuthResponse;
 import com.gabrieis.barbershop.dto.auth.GoogleAuthRequest;
 import com.gabrieis.barbershop.dto.auth.LoginRequest;
 import com.gabrieis.barbershop.dto.auth.RegisterRequest;
+import com.gabrieis.barbershop.dto.user.UserResponse;
+import com.gabrieis.barbershop.security.CurrentUserService;
 import com.gabrieis.barbershop.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final CurrentUserService currentUserService;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -36,5 +36,11 @@ public class AuthController {
     public ResponseEntity<AuthResponse> loginWithGoogle(@Valid @RequestBody GoogleAuthRequest request) {
         AuthResponse response = authService.loginWithGoogle(request.idToken());
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> me() {
+        UserResponse user = currentUserService.getResponse();
+        return ResponseEntity.ok(user);
     }
 }
