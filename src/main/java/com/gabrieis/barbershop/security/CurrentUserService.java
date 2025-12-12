@@ -17,7 +17,7 @@ public class CurrentUserService {
 
     private final UserRepository userRepository;
 
-    public User getEntity() {
+    public User getAuthenticatedUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if(auth == null || !auth.isAuthenticated()) {
@@ -30,8 +30,8 @@ public class CurrentUserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
-    public UserResponse getResponse() {
-        User user = getEntity();
+    public UserResponse getAuthenticatedUserResponse() {
+        User user = getAuthenticatedUser();
 
         return new UserResponse(
                 user.getPublicId(),

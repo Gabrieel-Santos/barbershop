@@ -53,6 +53,16 @@ public class JwtService {
         return UserRole.valueOf(role);
     }
 
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    public boolean isRefreshToken(String token) {
+        String type = extractClaim(token, claims -> claims.get("type", String.class));
+        return "refresh".equals(type);
+    }
+
     private Map<String, Object> buildDefaultClaims(User user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("publicId", user.getPublicId().toString());
@@ -71,11 +81,6 @@ public class JwtService {
                 .setExpiration(expiry)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
-    }
-
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
     }
 
     private Claims extractAllClaims(String token) {

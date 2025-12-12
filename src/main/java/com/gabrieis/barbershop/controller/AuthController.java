@@ -1,9 +1,6 @@
 package com.gabrieis.barbershop.controller;
 
-import com.gabrieis.barbershop.dto.auth.AuthResponse;
-import com.gabrieis.barbershop.dto.auth.GoogleAuthRequest;
-import com.gabrieis.barbershop.dto.auth.LoginRequest;
-import com.gabrieis.barbershop.dto.auth.RegisterRequest;
+import com.gabrieis.barbershop.dto.auth.*;
 import com.gabrieis.barbershop.dto.user.UserResponse;
 import com.gabrieis.barbershop.security.CurrentUserService;
 import com.gabrieis.barbershop.service.AuthService;
@@ -40,7 +37,13 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me() {
-        UserResponse user = currentUserService.getResponse();
+        UserResponse user = currentUserService.getAuthenticatedUserResponse();
         return ResponseEntity.ok(user);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        AuthResponse response = authService.refresh(request.refreshToken());
+        return ResponseEntity.ok(response);
     }
 }

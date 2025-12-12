@@ -25,7 +25,7 @@ public class Service {
     @Column(name = "public_id", nullable = false, unique = true, updatable = false)
     private UUID publicId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "barbershop_id", nullable = false)
     private Barbershop barbershop;
 
@@ -39,7 +39,7 @@ public class Service {
     private BigDecimal price;
 
     @Column(name = "duration_minutes", nullable = false)
-    private Integer dutarionMinutes;
+    private Integer durationMinutes;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

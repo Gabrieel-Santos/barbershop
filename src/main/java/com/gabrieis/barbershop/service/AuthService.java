@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -115,6 +116,27 @@ public class AuthService {
             throw e;
         } catch (Exception e) {
             throw new InvalidCredentialsException("Invalid Google token");
+        }
+    }
+
+    public AuthResponse refresh(String refreshToken) {
+        try {
+            String subject = jwtService.extractSubject(refreshToken);
+            UUID publicId = UUID.fromString(subject);
+
+            User user = userRepository.findByPublicId(publicId)
+                    .orElseThrow(()-> new InvalidCredentialsException("Invalid refresh token"));
+
+            if (!jwtService.isTokenValid(refreshToken, user) || !jwtService.isRefreshToken(refreshToken)) {
+                throw new InvalidCredentialsException("Invalid refresh token");
+            }
+
+            String newAccessToken = jwtService.generateAccessToken(user);
+            String newRefreshToken = jwtService.generateRefreshToken(user);
+
+            return new AuthResponse(newAccessToken, newRefreshToken);
+        } catch (Exception e) {
+            throw new InvalidCredentialsException("Invalid refresh token");
         }
     }
 

@@ -13,6 +13,8 @@ public interface BarbershopRepository extends JpaRepository<Barbershop, Long> {
 
     boolean existsByOwner(User owner);
 
+    boolean existsByEmail(String email);
+
     Optional<Barbershop> findByOwner(User owner);
 
 }
