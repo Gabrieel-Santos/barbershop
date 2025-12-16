@@ -45,7 +45,7 @@ public class Appointment {
     private LocalDateTime startTime;
 
     @Column(name = "end_time", nullable = false)
-    private  LocalDateTime endTime;
+    private LocalDateTime endTime;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

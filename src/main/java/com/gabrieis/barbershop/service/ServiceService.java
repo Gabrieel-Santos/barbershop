@@ -4,16 +4,22 @@ import com.gabrieis.barbershop.dto.service.CreateServiceRequest;
 import com.gabrieis.barbershop.dto.service.ServiceResponse;
 import com.gabrieis.barbershop.dto.service.UpdateServiceRequest;
 import com.gabrieis.barbershop.entity.Barbershop;
+import com.gabrieis.barbershop.entity.Professional;
+import com.gabrieis.barbershop.entity.ProfessionalService;
 import com.gabrieis.barbershop.entity.User;
 import com.gabrieis.barbershop.enums.UserRole;
 import com.gabrieis.barbershop.exception.BusinessException;
 import com.gabrieis.barbershop.exception.ResourceNotFoundException;
 import com.gabrieis.barbershop.repository.BarbershopRepository;
+import com.gabrieis.barbershop.repository.ProfessionalRepository;
+import com.gabrieis.barbershop.repository.ProfessionalServiceRepository;
 import com.gabrieis.barbershop.repository.ServiceRepository;
+import com.gabrieis.barbershop.security.CurrentBarbershopService;
 import com.gabrieis.barbershop.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,13 +30,16 @@ public class ServiceService {
 
     private final ServiceRepository serviceRepository;
     private final BarbershopRepository barbershopRepository;
-    private final CurrentUserService currentUserService;
+    private final CurrentBarbershopService currentBarbershopService;
+    private final ProfessionalRepository professionalRepository;
+    private final ProfessionalServiceRepository professionalServiceRepository;
 
     @PreAuthorize("hasRole('OWNER') or hasRole('ADMIN')")
+    @Transactional
     public ServiceResponse createService(CreateServiceRequest request) {
-        Barbershop barbershop = getOwnerBarbershopOrThrow();
+        Barbershop barbershop = currentBarbershopService.requireOwnerBarbershop();
 
-        if(serviceRepository.existsByNameIgnoreCaseAndBarbershop(request.name(), barbershop)) {
+        if (serviceRepository.existsByNameIgnoreCaseAndBarbershop(request.name(), barbershop)) {
             throw new BusinessException("Service with this name already exists for this barbershop");
         }
 
@@ -45,20 +54,40 @@ public class ServiceService {
 
         com.gabrieis.barbershop.entity.Service saved = serviceRepository.save(service);
 
+        List<Professional> activeProfessionals = professionalRepository.findAllByBarbershopAndIsActiveTrue(barbershop);
+
+        for (Professional p : activeProfessionals) {
+
+            boolean exists = professionalServiceRepository.existsByBarbershopAndProfessionalAndService(barbershop, p, saved);
+
+            if (!exists){
+                ProfessionalService link = ProfessionalService.builder()
+                        .barbershop(barbershop)
+                        .professional(p)
+                        .service(saved)
+                        .isActive(true)
+                        .priceOverride(null)
+                        .durationOverride(null)
+                        .build();
+
+                professionalServiceRepository.save(link);
+            }
+        }
+
         return toResponse(saved);
     }
 
     @PreAuthorize("hasRole('OWNER') or hasRole('ADMIN')")
     public List<ServiceResponse> listMyServices() {
-        Barbershop barbershop = getOwnerBarbershopOrThrow();
+        Barbershop barbershop = currentBarbershopService.requireOwnerBarbershop();
         List<com.gabrieis.barbershop.entity.Service> services = serviceRepository.findAllByBarbershop(barbershop);
 
         return services.stream().map(this::toResponse).toList();
     }
 
-    public List<ServiceResponse> listServiceByBarbershopPublicId(UUID barbershopPublicId){
+    public List<ServiceResponse> listServiceByBarbershopPublicId(UUID barbershopPublicId) {
         Barbershop barbershop = barbershopRepository.findByPublicId(barbershopPublicId)
-                .orElseThrow(()-> new ResourceNotFoundException("Barbershop not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("Barbershop not found."));
 
         List<com.gabrieis.barbershop.entity.Service> services = serviceRepository.findAllByBarbershop(barbershop);
 
@@ -67,13 +96,13 @@ public class ServiceService {
 
     @PreAuthorize("hasRole('OWNER') or hasRole('ADMIN')")
     public ServiceResponse updateMyService(UUID servicePublicId, UpdateServiceRequest request) {
-        Barbershop barbershop = getOwnerBarbershopOrThrow();
+        Barbershop barbershop = currentBarbershopService.requireOwnerBarbershop();
 
         com.gabrieis.barbershop.entity.Service service = serviceRepository.findByPublicIdAndBarbershop(servicePublicId, barbershop)
-                .orElseThrow(()-> new ResourceNotFoundException("Service not found for current barbershop."));
+                .orElseThrow(() -> new ResourceNotFoundException("Service not found for current barbershop."));
 
-        if(!service.getName().equalsIgnoreCase(request.name())
-        && serviceRepository.existsByNameIgnoreCaseAndBarbershop(request.name(), barbershop)) {
+        if (!service.getName().equalsIgnoreCase(request.name())
+                && serviceRepository.existsByNameIgnoreCaseAndBarbershop(request.name(), barbershop)) {
             throw new BusinessException("Service with this name already exists for this barbershop.");
         }
 
@@ -89,23 +118,12 @@ public class ServiceService {
 
     @PreAuthorize("hasRole('OWNER') or hasRole('ADMIN')")
     public void DeleteMyService(UUID servicePublicId) {
-        Barbershop barbershop = getOwnerBarbershopOrThrow();
+        Barbershop barbershop = currentBarbershopService.requireOwnerBarbershop();
 
         com.gabrieis.barbershop.entity.Service service = serviceRepository.findByPublicIdAndBarbershop(servicePublicId, barbershop)
-                .orElseThrow(()-> new ResourceNotFoundException("Service not found for current barbershop"));
+                .orElseThrow(() -> new ResourceNotFoundException("Service not found for current barbershop"));
 
         serviceRepository.delete(service);
-    }
-
-    private Barbershop getOwnerBarbershopOrThrow() {
-        User user = currentUserService.getAuthenticatedUser();
-
-        if(user.getRole() != UserRole.OWNER && user.getRole() != UserRole.ADMIN) {
-            throw new BusinessException("Only barbershop owners can perform this action.");
-        }
-
-        return  barbershopRepository.findByOwner(user)
-                .orElseThrow(()-> new ResourceNotFoundException("Barbershop not found for current user."));
     }
 
     private ServiceResponse toResponse(com.gabrieis.barbershop.entity.Service service) {

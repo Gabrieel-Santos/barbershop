@@ -1,6 +1,8 @@
 package com.gabrieis.barbershop.security;
 
 import com.gabrieis.barbershop.entity.User;
+import com.gabrieis.barbershop.enums.UserRole;
+import com.gabrieis.barbershop.repository.ProfessionalRepository;
 import com.gabrieis.barbershop.repository.UserRepository;
 import com.gabrieis.barbershop.service.JwtService;
 import jakarta.servlet.FilterChain;
@@ -25,6 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final ProfessionalRepository professionalRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -58,7 +61,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             User user = userRepository.findByPublicId(publicId).orElse(null);
 
-            if (user != null && jwtService.isTokenValid(jwt, user)) {
+            if (user != null && user.isActive() && jwtService.isTokenValid(jwt, user)) {
+
+                if (user.getRole() == UserRole.BARBER) {
+                    boolean hasActiveProfessional = professionalRepository.existsByUserAndIsActiveTrue(user);
+                    if (!hasActiveProfessional) {
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+                }
 
                 var authorities = List.of(
                         new SimpleGrantedAuthority("ROLE_" + user.getRole().name())

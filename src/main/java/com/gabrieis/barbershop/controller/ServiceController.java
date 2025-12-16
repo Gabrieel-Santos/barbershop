@@ -34,7 +34,7 @@ public class ServiceController {
     @GetMapping("/barbershop/{barbershopPublicId}")
     public ResponseEntity<List<ServiceResponse>> listByBarbershop(@PathVariable UUID barbershopPublicId) {
         List<ServiceResponse> services = serviceService.listServiceByBarbershopPublicId(barbershopPublicId);
-        return  ResponseEntity.ok(services);
+        return ResponseEntity.ok(services);
     }
 
     @PutMapping("/my/{servicePublicId}")

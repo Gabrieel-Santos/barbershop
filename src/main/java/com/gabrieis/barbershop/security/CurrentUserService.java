@@ -20,7 +20,7 @@ public class CurrentUserService {
     public User getAuthenticatedUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if(auth == null || !auth.isAuthenticated()) {
+        if (auth == null || !auth.isAuthenticated()) {
             throw new ResourceNotFoundException("Authenticated user not found");
         }
 

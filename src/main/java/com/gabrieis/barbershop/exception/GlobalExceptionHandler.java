@@ -60,7 +60,6 @@ public class GlobalExceptionHandler {
     }
 
 
-
     private ResponseEntity<Object> buildResponse(HttpStatus status, String message) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now().toString());

@@ -84,7 +84,7 @@ public class AuthService {
                 throw new InvalidCredentialsException("Invalid Google token");
             }
 
-            GoogleIdToken.Payload payload =idToken.getPayload();
+            GoogleIdToken.Payload payload = idToken.getPayload();
 
             String email = payload.getEmail();
             String name = (String) payload.get("name");
@@ -125,7 +125,7 @@ public class AuthService {
             UUID publicId = UUID.fromString(subject);
 
             User user = userRepository.findByPublicId(publicId)
-                    .orElseThrow(()-> new InvalidCredentialsException("Invalid refresh token"));
+                    .orElseThrow(() -> new InvalidCredentialsException("Invalid refresh token"));
 
             if (!jwtService.isTokenValid(refreshToken, user) || !jwtService.isRefreshToken(refreshToken)) {
                 throw new InvalidCredentialsException("Invalid refresh token");

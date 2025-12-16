@@ -78,10 +78,10 @@ public class BarbershopService {
         User user = currentUserService.getAuthenticatedUser();
 
         Barbershop barbershop = barbershopRepository.findByOwner(user)
-                .orElseThrow(()-> new ResourceNotFoundException("Barbershop not found for current user."));
+                .orElseThrow(() -> new ResourceNotFoundException("Barbershop not found for current user."));
 
-        if(!barbershop.getEmail().equals(request.email()) && barbershopRepository.existsByEmail(request.email())) {
-            throw  new EmailAlreadyExistsException("Email already in use by another barbershop.");
+        if (!barbershop.getEmail().equals(request.email()) && barbershopRepository.existsByEmail(request.email())) {
+            throw new EmailAlreadyExistsException("Email already in use by another barbershop.");
         }
 
         barbershop.setName(request.name());
@@ -90,7 +90,7 @@ public class BarbershopService {
         barbershop.setEmail(request.email());
         barbershop.setLogoUrl(request.logoUrl());
 
-        Barbershop updated  = barbershopRepository.save(barbershop);
+        Barbershop updated = barbershopRepository.save(barbershop);
 
         return toResponse(updated);
     }

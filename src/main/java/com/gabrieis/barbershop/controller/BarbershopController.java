@@ -33,7 +33,7 @@ public class BarbershopController {
     @GetMapping("{publicId}")
     public ResponseEntity<BarbershopResponse> getByPublicId(@PathVariable UUID publicId) {
         BarbershopResponse response = barbershopService.getByPublicId(publicId);
-        return  ResponseEntity.ok(response);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/my")
