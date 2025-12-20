@@ -33,7 +33,7 @@ public class ProfessionalServicesController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/barbershops/{barbershopPublicId}/professionals/{professionalPublicId/services}")
+    @GetMapping("/barbershops/{barbershopPublicId}/professionals/{professionalPublicId}/services")
     public ResponseEntity<List<ProfessionalServiceResponse>> listActiveServicesForProfessional(
             @PathVariable UUID barbershopPublicId,
             @PathVariable UUID professionalPublicId
@@ -49,9 +49,9 @@ public class ProfessionalServicesController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{professionalPublicId}/services/{servicePublicId}")
-    public ResponseEntity<Void> unlink(@PathVariable UUID professionalPublicId, UUID servicePublicId) {
-        professionalServicesService.unlinkService(professionalPublicId, servicePublicId);
+    @DeleteMapping("/services/{professionalServicePublicId}")
+    public ResponseEntity<Void> unlink(@PathVariable UUID professionalServicePublicId) {
+        professionalServicesService.deleteLinkByPublicId(professionalServicePublicId);
         return ResponseEntity.noContent().build();
     }
 

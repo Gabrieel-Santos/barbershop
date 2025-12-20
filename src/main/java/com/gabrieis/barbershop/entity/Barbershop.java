@@ -39,6 +39,9 @@ public class Barbershop {
     @Column(name = "logo_url")
     private String logoUrl;
 
+    @Column(name = "slot_minutes", nullable = false)
+    private Integer slotMinutes = 20;
+
     @ManyToOne
     @JoinColumn(name = "owner_user_id", nullable = false)
     private User owner;
@@ -55,6 +58,9 @@ public class Barbershop {
     public void prePersist() {
         if (publicId == null) {
             publicId = UUID.randomUUID();
+        }
+        if (slotMinutes == null) {
+            slotMinutes = 20;
         }
     }
 }

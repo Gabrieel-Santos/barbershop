@@ -39,19 +39,8 @@ public class ProfessionalService {
             throw new BusinessException("Professional with this display name already exists for this barbershop");
         }
 
-        if (request.userPublicId() == null || request.userPublicId().isBlank()) {
-            throw new BusinessException("UserPublicId is required. Every professional must have an account.");
-        }
-
-        UUID userPublicId;
-        try {
-            userPublicId = UUID.fromString(request.userPublicId());
-        } catch (IllegalArgumentException e) {
-            throw new BusinessException("Invalid userPublicId format.");
-        }
-
-        User linkedUser = userRepository.findByPublicId(userPublicId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found provided publicId."));
+        User linkedUser = userRepository.findByEmail(request.userEmail().trim().toLowerCase())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found provided email."));
 
 
         Professional professional = Professional.builder()

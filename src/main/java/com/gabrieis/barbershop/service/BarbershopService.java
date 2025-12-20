@@ -84,6 +84,12 @@ public class BarbershopService {
             throw new EmailAlreadyExistsException("Email already in use by another barbershop.");
         }
 
+        if(request.slotMinutes() != null) {
+            if (request.slotMinutes() < 5 || request.slotMinutes() > 120) {
+                throw new BusinessException("slotMinutes must be between 5 and 120.");
+            }
+        }
+
         barbershop.setName(request.name());
         barbershop.setDescription(request.description());
         barbershop.setPhone(request.phone());
@@ -103,7 +109,8 @@ public class BarbershopService {
                 barbershop.getPhone(),
                 barbershop.getEmail(),
                 barbershop.getLogoUrl(),
-                barbershop.getOwner() != null ? barbershop.getOwner().getPublicId() : null
+                barbershop.getOwner() != null ? barbershop.getOwner().getPublicId() : null,
+                barbershop.getSlotMinutes()
         );
     }
 

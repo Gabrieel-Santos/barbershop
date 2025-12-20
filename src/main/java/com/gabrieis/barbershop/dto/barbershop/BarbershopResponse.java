@@ -9,6 +9,7 @@ public record BarbershopResponse(
         String phone,
         String email,
         String logoUrl,
-        UUID ownerPublicId
+        UUID ownerPublicId,
+        Integer slotMinutes
 ) {
 }

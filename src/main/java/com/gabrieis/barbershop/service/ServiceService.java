@@ -43,6 +43,12 @@ public class ServiceService {
             throw new BusinessException("Service with this name already exists for this barbershop");
         }
 
+        int slot = barbershop.getSlotMinutes();
+
+        if (request.durationMinutes() % slot != 0) {
+            throw new BusinessException("Service duration must be a multiple of slotMinutes=" + slot + ".");
+        }
+
         com.gabrieis.barbershop.entity.Service service =
                 com.gabrieis.barbershop.entity.Service.builder()
                         .barbershop(barbershop)
@@ -60,7 +66,7 @@ public class ServiceService {
 
             boolean exists = professionalServiceRepository.existsByBarbershopAndProfessionalAndService(barbershop, p, saved);
 
-            if (!exists){
+            if (!exists) {
                 ProfessionalService link = ProfessionalService.builder()
                         .barbershop(barbershop)
                         .professional(p)
@@ -104,6 +110,12 @@ public class ServiceService {
         if (!service.getName().equalsIgnoreCase(request.name())
                 && serviceRepository.existsByNameIgnoreCaseAndBarbershop(request.name(), barbershop)) {
             throw new BusinessException("Service with this name already exists for this barbershop.");
+        }
+
+        int slot = barbershop.getSlotMinutes();
+
+        if (request.durationMinutes() % slot != 0) {
+            throw new BusinessException("Service duration must be a multiple of slotMinutes=" + slot + ".");
         }
 
         service.setName(request.name());

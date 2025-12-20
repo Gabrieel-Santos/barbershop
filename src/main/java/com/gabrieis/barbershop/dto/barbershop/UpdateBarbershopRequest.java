@@ -20,7 +20,9 @@ public record UpdateBarbershopRequest(
         @NotBlank(message = "Email is required")
         String email,
 
-        String logoUrl
+        String logoUrl,
+
+        Integer slotMinutes
 
 ) {
 }

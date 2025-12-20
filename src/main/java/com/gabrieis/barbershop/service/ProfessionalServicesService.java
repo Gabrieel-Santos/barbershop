@@ -52,6 +52,12 @@ public class ProfessionalServicesService {
         ProfessionalService link = professionalServiceRepository.findByBarbershopAndProfessionalAndService(barbershop, professional, service)
                 .orElse(null);
 
+        int slot = barbershop.getSlotMinutes();
+
+        if(request.durationOverride() != null && request.durationOverride() % slot != 0){
+            throw new BusinessException("Duration override must be a multiple of slotMinutes=" + ".");
+        }
+
         if (link == null) {
             link = ProfessionalService.builder()
                     .barbershop(barbershop)
@@ -124,17 +130,12 @@ public class ProfessionalServicesService {
     }
 
     @PreAuthorize("hasRole('OWNER') or hasRole('ADMIN')")
-    public void unlinkService(UUID professionalPublicId, UUID servicePublicId) {
+    public void deleteLinkByPublicId(UUID professionalServicePublicId) {
         Barbershop barbershop = currentBarbershopService.requireOwnerBarbershop();
 
-        Professional professional = professionalRepository.findByPublicIdAndBarbershop(professionalPublicId, barbershop)
-                .orElseThrow(()-> new ResourceNotFoundException("Professional not found for current barbershop."));
+        ProfessionalService link = professionalServiceRepository.findByPublicIdAndBarbershop(professionalServicePublicId, barbershop)
+                        .orElseThrow(()-> new ResourceNotFoundException("Link not found for current barbershop"));
 
-        com.gabrieis.barbershop.entity.Service service = serviceRepository.findByPublicIdAndBarbershop(servicePublicId, barbershop)
-                .orElseThrow(()-> new ResourceNotFoundException("Service not found for current barbershop."));
-
-        ProfessionalService link = professionalServiceRepository.findByBarbershopAndProfessionalAndService(barbershop, professional, service)
-                .orElseThrow(()-> new ResourceNotFoundException("Link not found."));
 
         link.setActive(false);
         professionalServiceRepository.save(link);
