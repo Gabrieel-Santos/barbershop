@@ -33,6 +33,7 @@ public class AppointmentService {
     private final ProfessionalServiceRepository professionalServiceRepository;
     private final CurrentUserService currentUserService;
     private final CurrentBarbershopService currentBarbershopService;
+    private final AvailabilityService availabilityService;
 
     @PreAuthorize("hasRole('CLIENT') or hasRole('OWNER') or hasRole('ADMIN')")
     @Transactional
@@ -82,6 +83,12 @@ public class AppointmentService {
                 .status(AppointmentStatus.SCHEDULED)
                 .notes(request.notes())
                 .build();
+
+        boolean available = availabilityService.isSlotAvailable(barbershop, professional, service, start);
+
+        if (!available) {
+            throw new BusinessException("Selected time is not available for this professional.");
+        }
 
         Appointment saved = appointmentRepository.save(appt);
 
@@ -232,6 +239,12 @@ public class AppointmentService {
         appt.setStartTime(start);
         appt.setEndTime(end);
         appt.setNotes(request.notes());
+
+        boolean available = availabilityService.isSlotAvailable(barbershop, professional, service, start);
+
+        if (!available) {
+            throw new BusinessException("Selected time is not available for this professional.");
+        }
 
         return toResponse(appointmentRepository.save(appt));
 

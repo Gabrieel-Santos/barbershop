@@ -1,2 +1,2 @@
 # Aplicativo de agendamento completo para barbearias
- Em progresso...
+ MVP finalizado

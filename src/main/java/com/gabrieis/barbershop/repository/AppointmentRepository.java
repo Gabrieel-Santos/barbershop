@@ -24,6 +24,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     List<Appointment> findAllByProfessionalAndStartTimeBetweenOrderByStartTimeAsc(Professional professional, LocalDateTime start, LocalDateTime end);
 
+    List<Appointment> findAllByProfessionalAndStatusAndStartTimeBetweenOrderByStartTimeAsc(Professional professional, AppointmentStatus status, LocalDateTime start, LocalDateTime end);
+
     boolean existsByProfessionalAndStatusAndStartTimeLessThanAndEndTimeGreaterThan(Professional professional, AppointmentStatus status, LocalDateTime end, LocalDateTime start);
 
     boolean existsByProfessionalAndStatusAndStartTimeLessThanAndEndTimeGreaterThanAndPublicIdNot(Professional professional, AppointmentStatus status, LocalDateTime end, LocalDateTime start, UUID excludePublicId);
